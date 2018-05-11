@@ -1,0 +1,141 @@
+---
+title: "Statistical Inference Course Project Part 2"
+author: "Yan"
+date: "5/8/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Part 2: Basic Inferential Data Analysis Instructionsless 
+
+Now in the second portion of the project, we're going to analyze the ToothGrowth data in the R datasets package.
+
+#### Load the ToothGrowth data and perform some basic exploratory data analyses
+
+```{r}
+library(datasets)
+library(ggplot2)
+data(ToothGrowth)
+head(ToothGrowth)
+```
+
+```{r}
+tg <- ToothGrowth
+tg$dose <- as.factor(tg$dose)
+qplot(x=supp,y=len,data = tg,facets = .~dose) + geom_boxplot(aes(fill = supp))
+```
+
+#### Provide a basic summary of the data.
+
+```{r}
+dim(tg)
+summary(tg)
+```
+
+#### Use confidence intervals and/or hypothesis tests to compare tooth growth by supp and dose. 
+
+Note: (Only use the techniques from class, even if there's other approaches worth considering)
+
+split the dataset according to dose and supp
+```{r}
+OJ <- tg[tg$supp == "OJ",]
+VC <- tg[tg$supp == "VC",]
+OJdose1 <- tg[tg$supp == "OJ" & tg$dose == 0.5,]
+OJdose2 <- tg[tg$supp == "OJ" & tg$dose == 1,]
+OJdose3 <- tg[tg$supp == "OJ" & tg$dose == 2,]
+VCdose1 <- tg[tg$supp == "VC" & tg$dose == 0.5,]
+VCdose2 <- tg[tg$supp == "VC" & tg$dose == 1,]
+VCdose3 <- tg[tg$supp == "VC" & tg$dose == 2,]
+dim(OJ)
+dim(VC)
+dim(OJdose1)
+dim(OJdose2)
+dim(OJdose3)
+dim(VCdose1)
+dim(VCdose2)
+dim(VCdose3)
+```
+
+Check if tooth growth is affected by dose
+
+
+##### Get confidence intervals for different supp regardless different dose
+
+```{r}
+t.test(len ~ supp, data = tg,paired=FALSE, var.equal = FALSE )$conf
+```
+
+So when doesn't consider the dosage, doesn't show significant difference between two supplements.
+
+##### Get confidence intervals for low/median/large dose with different supp
+
+```{r}
+t.test(OJdose1$len, VCdose1$len, paired = FALSE, var.equal = FALSE)$conf
+t.test(OJdose2$len, VCdose2$len, paired = FALSE, var.equal = FALSE)$conf
+t.test(OJdose3$len, VCdose3$len, paired = FALSE, var.equal = FALSE)$conf
+```
+
+From the 95% confidence intervals, 0 is not included when the dosage is small or median. So there's significant difference between two supplement with OJ leads to faster tooth growth than VC.
+
+##### Get confidence intervals for same supp with different dosage
+
+```{r}
+t.test(OJdose1$len, OJdose2$len, paired = FALSE, var.equal = FALSE)$conf
+t.test(OJdose1$len, OJdose3$len, paired = FALSE, var.equal = FALSE)$conf
+t.test(OJdose2$len, OJdose3$len, paired = FALSE, var.equal = FALSE)$conf
+t.test(VCdose1$len, VCdose2$len, paired = FALSE, var.equal = FALSE)$conf
+t.test(VCdose1$len, VCdose3$len, paired = FALSE, var.equal = FALSE)$conf
+t.test(VCdose2$len, VCdose3$len, paired = FALSE, var.equal = FALSE)$conf
+```
+
+From the 95% confidence intervals, 0 is not included in all cases. So there's significant difference between different dosage of same supplement, the tooth growth becomes faster with increasing dosage.
+
+##### State your conclusions and the assumptions needed for your conclusions.
+
+Assumptions:  
+
+* The varience with different supplement and different dosage is not the same.
+
+* The data between different groups are not paired
+
+* The sample population is not skewed
+
+Conclusions:  
+
+* With same supplement, OJ or VC, increasing the dosage leads to faster tooth growth
+
+* With small or median dosage, OJ leads to faster tooth growth than VC
+
+* With large dosage, no significant difference observed using OJ or VC
+
+
+
+## Review criteria (self check)  
+
+* [x] Did you show where the distribution is centered at and compare it to the theoretical center of the distribution?
+
+* [x] Did you show how variable it is and compare it to the theoretical variance of the distribution?
+
+* [x] Did you perform an exploratory data analysis of at least a single plot or table highlighting basic features of the data?
+
+* [x] Did the student perform some relevant confidence intervals and/or tests?
+
+* [x] Were the results of the tests and/or intervals interpreted in the context of the problem correctly?
+
+* [x] Did the student describe the assumptions needed for their conclusions?
+
+
+##### Links used:  
+
+[link 1](https://rpubs.com/gviglioni/ExponentialDistribution_CentralLimitTheorem)  
+[link 2](https://rpubs.com/a_inparadise/86939)  
+[link 3](https://rpubs.com/abhiuee/53828)  
+[link 4](https://rstudio-pubs-static.s3.amazonaws.com/82410_9df3ec9e695c45eda138f47a2fae9187.html)  
+[link 5](http://rstudio-pubs-static.s3.amazonaws.com/156585_ea5571a742cc4f1ea94e401a7320c4a4.html)  
+[link 6](https://rstudio-pubs-static.s3.amazonaws.com/88003_457d504772954be399c4070d9b404a0f.html)  
+[link 7](https://rstudio-pubs-static.s3.amazonaws.com/30490_f5f75fae348843819993bf1e0957f4f1.html)  
+[link 8](https://rstudio-pubs-static.s3.amazonaws.com/67663_669e39c2153e4f8295f9d130abf07b7e.html)  
+
