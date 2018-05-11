@@ -1,0 +1,267 @@
+---
+title: "Statistical Inference Course Project"
+author: "Yan"
+date: "5/8/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+
+## Part 1: Simulation Exercise Instructionsless 
+
+In this project you will investigate the exponential distribution in R and compare it with the Central Limit Theorem. The exponential distribution can be simulated in R with rexp(n, lambda) where lambda is the rate parameter. The mean of exponential distribution is 1/lambda and the standard deviation is also 1/lambda. Set lambda = 0.2 for all of the simulations. You will investigate the distribution of averages of 40 exponentials. Note that you will need to do a thousand simulations.
+
+Illustrate via simulation and associated explanatory text the properties of the distribution of the mean of 40 exponentials. You should
+
+1. Show the sample mean and compare it to the theoretical mean of the distribution.
+
+2. Show how variable the sample is (via variance) and compare it to the theoretical variance of the distribution.
+
+3. Show that the distribution is approximately normal.
+
+In point 3, focus on the difference between the distribution of a large collection of random exponentials and the distribution of a large collection of averages of 40 exponentials.
+
+_As a motivating example, compare the distribution of 1000 random uniforms_
+
+```{r}
+hist(runif(1000))
+```
+
+_and the distribution of 1000 averages of 40 random uniforms_
+
+```{r}
+mns = NULL
+for (i in 1 : 1000) mns = c(mns, mean(runif(40)))
+hist(mns)
+```
+
+_This distribution looks far more Gaussian than the original uniform distribution!_
+
+_This exercise is asking you to use your knowledge of the theory given in class to relate the two distributions._
+
+_Confused? Try re-watching video lecture 07 for a starter on how to complete this project._
+
+_Sample Project Report Structure_
+
+_Of course, there are multiple ways one could structure a report to address the requirements above. However, the more clearly you pose and answer each question, the easier it will be for reviewers to clearly identify and evaluate your work._
+
+_A sample set of headings that could be used to guide the creation of your report might be:_
+
+_Title (give an appropriate title) and Author Name_
+
+_Overview: In a few (2-3) sentences explain what is going to be reported on._
+
+_Simulations: Include English explanations of the simulations you ran, with the accompanying R code. Your explanations should make clear what the R code accomplishes._
+
+_Sample Mean versus Theoretical Mean: Include figures with titles. In the figures, highlight the means you are comparing. Include text that explains the figures and what is shown on them, and provides appropriate numbers._
+
+_Sample Variance versus Theoretical Variance: Include figures (output from R) with titles. Highlight the variances you are comparing. Include text that explains your understanding of the differences of the variances._
+
+_Distribution: Via figures and text, explain how one can tell the distribution is approximately normal._
+
+
+#### Set simulations
+
+Run exponential distributions 1000 times, with lambda = 0.2 and n = 40
+
+```{r}
+#The exponential distribution can be simulated in R with rexp(n, lambda) where lambda is the rate parameter. The mean of exponential distribution is 1/lambda and the standard deviation is also 1/lambda.
+set.seed(123456)
+# set lambda and n
+lambda <- 0.2
+n <- 40
+# initialize
+mns=NULL
+vars=NULL
+for (i in 1 : 1000) {
+  edist <- rexp(n,lambda)
+  mns = c(mns, mean(edist))
+}
+```
+
+#### Sample mean vs Theretical mean
+
+```{r}
+# theretical mean is 1/lambda
+tmn <- 1/lambda
+tmn
+# sample mean
+smn <- mean(mns)
+smn
+# make plot for the mean of 1000 averages of 40 random exponential distrubutions, and compare sample mean and theretical mean
+hist(mns, xlab = "mean",main = "Sample mean vs Theretical mean")
+abline(v=smn,col="blue",lwd=2,lty=2)
+abline(v=tmn,col="red",lwd=2,lty=1)
+legend("topright",lty = c(2,1),col=c("blue","red"),legend=c("sample mean","theretical mean"))
+```
+
+#### Sample Variance vs Theoretical Variance
+
+```{r}
+# theretical variance : standard deviation is 1/lambda
+tvar <- (1/lambda)^2/n
+tvar
+# sample variance
+svar <- var(mns)
+svar
+```
+
+#### Distribution: normal?
+
+Use ggplot2 to do this plot
+
+```{r echo=FALSE}
+library(ggplot2)
+```
+
+```{r}
+mnsplot <- data.frame(mns)
+g1 <- ggplot(data=mnsplot,mapping = aes(x=mns))  +
+  geom_histogram(aes(y=..density..),binwidth = 0.2, color = "black", fill = "white") + 
+  stat_function(fun = dnorm, color = "red",size=1, args = list(mean=tmn,sd=sqrt(tvar))) +
+  geom_density(color="blue", size=1) + 
+  ggtitle("Compare to a normal distribution") + 
+  xlab("Sample mean") + ylab("Density")
+g1
+```
+
+We have checked that the mean and variance of the sample distributions are close to those for normal distribution as shown in the figure above. So this distribution is approximately normal.  
+
+Note: Normal Q-Q plot can also be used to check if the distribution is normal or not. Details can be refered to the links at the end.  
+
+
+## Part 2: Basic Inferential Data Analysis Instructionsless 
+
+Now in the second portion of the project, we're going to analyze the ToothGrowth data in the R datasets package.
+
+#### Load the ToothGrowth data and perform some basic exploratory data analyses
+
+```{r}
+library(datasets)
+data(ToothGrowth)
+head(ToothGrowth)
+```
+
+```{r}
+tg <- ToothGrowth
+tg$dose <- as.factor(tg$dose)
+qplot(x=supp,y=len,data = tg,facets = .~dose) + geom_boxplot(aes(fill = supp))
+```
+
+#### Provide a basic summary of the data.
+
+```{r}
+dim(tg)
+summary(tg)
+```
+
+#### Use confidence intervals and/or hypothesis tests to compare tooth growth by supp and dose. 
+
+Note: (Only use the techniques from class, even if there's other approaches worth considering)
+
+split the dataset according to dose and supp
+```{r}
+OJ <- tg[tg$supp == "OJ",]
+VC <- tg[tg$supp == "VC",]
+OJdose1 <- tg[tg$supp == "OJ" & tg$dose == 0.5,]
+OJdose2 <- tg[tg$supp == "OJ" & tg$dose == 1,]
+OJdose3 <- tg[tg$supp == "OJ" & tg$dose == 2,]
+VCdose1 <- tg[tg$supp == "VC" & tg$dose == 0.5,]
+VCdose2 <- tg[tg$supp == "VC" & tg$dose == 1,]
+VCdose3 <- tg[tg$supp == "VC" & tg$dose == 2,]
+dim(OJ)
+dim(VC)
+dim(OJdose1)
+dim(OJdose2)
+dim(OJdose3)
+dim(VCdose1)
+dim(VCdose2)
+dim(VCdose3)
+```
+
+Check if tooth growth is affected by dose
+
+
+##### Get confidence intervals for different supp regardless different dose
+
+```{r}
+t.test(len ~ supp, data = tg,paired=FALSE, var.equal = FALSE )$conf
+```
+
+So when doesn't consider the dosage, doesn't show significant difference between two supplements.
+
+##### Get confidence intervals for low/median/large dose with different supp
+
+```{r}
+t.test(OJdose1$len, VCdose1$len, paired = FALSE, var.equal = FALSE)$conf
+t.test(OJdose2$len, VCdose2$len, paired = FALSE, var.equal = FALSE)$conf
+t.test(OJdose3$len, VCdose3$len, paired = FALSE, var.equal = FALSE)$conf
+```
+
+From the 95% confidence intervals, 0 is not included when the dosage is small or median. So there's significant difference between two supplement with OJ leads to faster tooth growth than VC.
+
+##### Get confidence intervals for same supp with different dosage
+
+```{r}
+t.test(OJdose1$len, OJdose2$len, paired = FALSE, var.equal = FALSE)$conf
+t.test(OJdose1$len, OJdose3$len, paired = FALSE, var.equal = FALSE)$conf
+t.test(OJdose2$len, OJdose3$len, paired = FALSE, var.equal = FALSE)$conf
+t.test(VCdose1$len, VCdose2$len, paired = FALSE, var.equal = FALSE)$conf
+t.test(VCdose1$len, VCdose3$len, paired = FALSE, var.equal = FALSE)$conf
+t.test(VCdose2$len, VCdose3$len, paired = FALSE, var.equal = FALSE)$conf
+```
+
+From the 95% confidence intervals, 0 is not included in all cases. So there's significant difference between different dosage of same supplement, the tooth growth becomes faster with increasing dosage.
+
+##### State your conclusions and the assumptions needed for your conclusions.
+
+Assumptions:  
+
+* The varience with different supplement and different dosage is not the same.
+
+* The data between different groups are not paired
+
+* The sample population is not skewed
+
+Conclusions:  
+
+* With same supplement, OJ or VC, increasing the dosage leads to faster tooth growth
+
+* With small or median dosage, OJ leads to faster tooth growth than VC
+
+* With large dosage, no significant difference observed using OJ or VC
+
+
+
+## Review criteria (self check)  
+
+* [x] Did you show where the distribution is centered at and compare it to the theoretical center of the distribution?
+
+* [x] Did you show how variable it is and compare it to the theoretical variance of the distribution?
+
+* [x] Did you perform an exploratory data analysis of at least a single plot or table highlighting basic features of the data?
+
+* [x] Did the student perform some relevant confidence intervals and/or tests?
+
+* [x] Were the results of the tests and/or intervals interpreted in the context of the problem correctly?
+
+* [x] Did the student describe the assumptions needed for their conclusions?
+
+
+##### Links used:  
+
+[link 1](https://rpubs.com/gviglioni/ExponentialDistribution_CentralLimitTheorem)  
+[link 2](https://rpubs.com/a_inparadise/86939)  
+[link 3](https://rpubs.com/abhiuee/53828)  
+[link 4](https://rstudio-pubs-static.s3.amazonaws.com/82410_9df3ec9e695c45eda138f47a2fae9187.html)  
+[link 5](http://rstudio-pubs-static.s3.amazonaws.com/156585_ea5571a742cc4f1ea94e401a7320c4a4.html)  
+[link 6](https://rstudio-pubs-static.s3.amazonaws.com/88003_457d504772954be399c4070d9b404a0f.html)  
+[link 7](https://rstudio-pubs-static.s3.amazonaws.com/30490_f5f75fae348843819993bf1e0957f4f1.html)  
+[link 8](https://rstudio-pubs-static.s3.amazonaws.com/67663_669e39c2153e4f8295f9d130abf07b7e.html)  
+
